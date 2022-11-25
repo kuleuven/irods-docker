@@ -1,0 +1,16 @@
+#!/bin/bash
+FILE=$1
+PATCH=$2
+if [ -z "$PATCH" ]; then
+  PATCH=${FILE}.tmpl
+fi
+LEVEL=$3
+
+envsubst < ${PATCH} > ${FILE}.patch
+cp -a ${FILE} ${FILE}.orig
+
+if [[ "$LEVEL" == "2" ]]; then
+  jq -s '.[0] * .[1]' ${FILE}.orig ${FILE}.patch > ${FILE}
+else
+  jq -s '.[0] + .[1]' ${FILE}.orig ${FILE}.patch > ${FILE}
+fi

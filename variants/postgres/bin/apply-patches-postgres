@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if echo -e "$VERSION\n4.3.0" | sort -V | head -n1 | grep -q "4.3.0"; then
+  echo TODO 
+  sed -i 's/mysql/postgres/' /usr/local/bin/setup-irods
+  sed -i 's/MySQL ODBC 8.0 Unicode Driver/PostgreSQL/' /usr/local/bin/setup-irods
+  sed -i 's/MySQL ODBC 8.0 Unicode Driver/PostgreSQL/' /etc/irods/server_config.json.provider-tmpl
+  sed -i 's/mysql/postgres/' /etc/irods/server_config.json.provider-tmpl
+else
+  sed -i '/MySQL ODBC 8.0 Unicode Driver/d' /usr/local/bin/setup-irods
+  sed -i 's/MySQL/PostgreSQL/' /usr/local/bin/setup-irods
+  sed -i 's/MySQL ODBC 8.0 Unicode Driver/PostgreSQL/' /etc/irods/server_config.json.provider-tmpl
+  sed -i 's/mysql/postgres/' /etc/irods/server_config.json.provider-tmpl
+fi
+
+# Undo 20211126 Require ssl to connect in database_connect.py
+sed -i "/odbc_dict\['ssl'\]/d" /var/lib/irods/scripts/irods/database_connect.py
+sed -i "/odbc_dict\['sslmode'\]/d" /var/lib/irods/scripts/irods/database_connect.py

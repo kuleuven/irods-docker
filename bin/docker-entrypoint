@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ "$(hostname)" != "$SERVER" ]; then
+  echo "Please set hostname to $SERVER, needed for irods to run properly."
+  sleep 60
+  exit 1
+fi
+
+# Sleep until some docker or podman hacks have configured the network
+sleep 2
+
+setup-vault
+setup-irods
+setup-ssl
+
+if [ -z "$@" ]; then
+  exec /usr/local/bin/supervisord --nodaemon
+else
+  exec "$@"
+fi
