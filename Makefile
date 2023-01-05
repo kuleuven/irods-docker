@@ -6,7 +6,7 @@ DOCKER=GEM_HOME= GEM_PATH= docker
 TAG?=mysql
 
 # IRODS version
-VERSION?=4.2.11
+VERSION?=4.3.0
 
 MYSQL_IMAGE?=mysql:8
 POSTGRES_IMAGE?=postgres:11

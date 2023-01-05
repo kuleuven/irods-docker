@@ -23,11 +23,9 @@ create function R_ObjectId_currval() returns bigint deterministic return @R_Obje
 EOF
 
 # Let irods cope with ipv6 database servers
-curl https://raw.githubusercontent.com/pypyodbc/pypyodbc/main/pypyodbc.py > /var/lib/irods/scripts/irods/pypyodbc.py
+#curl https://raw.githubusercontent.com/pypyodbc/pypyodbc/main/pypyodbc.py > /var/lib/irods/scripts/irods/pypyodbc.py
 
-# Set Charset=UTF8 in /var/lib/irods/.odbc.ini
-sed -i "s/'Option': '2',/'Option': '2', 'Charset': 'UTF8',/" /var/lib/irods/scripts/irods/database_connect.py
-sed -i "s/'FOUND_ROWS': '1',/'FOUND_ROWS': '1', 'Charset': 'UTF8',/" /var/lib/irods/scripts/irods/database_connect.py
+# Use ssl to connect to database
 sed -i "s/'\[client\]'/'[client]', 'ssl=true'/" /var/lib/irods/scripts/irods/database_connect.py
 
 # Don't refuse SSL
