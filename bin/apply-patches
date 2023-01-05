@@ -26,15 +26,15 @@ EOF
 #curl https://raw.githubusercontent.com/pypyodbc/pypyodbc/main/pypyodbc.py > /var/lib/irods/scripts/irods/pypyodbc.py
 
 # Use ssl to connect to database
-sed -i "s/'\[client\]'/'[client]', 'ssl=true'/" /var/lib/irods/scripts/irods/database_connect.py
+#sed -i "s/'\[client\]'/'[client]', 'ssl=true'/" /var/lib/irods/scripts/irods/database_connect.py
 
 # Don't refuse SSL
-sed -i "s/CS_NEG_REFUSE/CS_NEG_DONT_CARE/g" /var/lib/irods/scripts/irods/lib.py /var/lib/irods/scripts/setup_irods.py /var/lib/irods/scripts/irods/test/test_rulebase.py
+#sed -i "s/CS_NEG_REFUSE/CS_NEG_DONT_CARE/g" /var/lib/irods/scripts/irods/lib.py /var/lib/irods/scripts/setup_irods.py /var/lib/irods/scripts/irods/test/test_rulebase.py
 
 # 20211126 Require ssl to connect in database_connect.py
-sed -i "s/    odbc_dict\['sslmode'\]/odbc_dict['sslmode']/" /var/lib/irods/scripts/irods/database_connect.py
-sed -i "s/    odbc_dict\['ssl'\]/odbc_dict['ssl']/" /var/lib/irods/scripts/irods/database_connect.py
+#sed -i "s/    odbc_dict\['sslmode'\]/odbc_dict['sslmode']/" /var/lib/irods/scripts/irods/database_connect.py
+#sed -i "s/    odbc_dict\['ssl'\]/odbc_dict['ssl']/" /var/lib/irods/scripts/irods/database_connect.py
 
 # 20211126 Remove the iput test - irodsController is blocking with syslog enabled
-sed -i '/Starting iRODS/,/configured and ready/d' /var/lib/irods/scripts/setup_irods.py
-sed -i '/setup_catalog/a \ \ \ \ \ \ \ \ database_interface.server_launch_hook(irods_config)' /var/lib/irods/scripts/setup_irods.py
+#sed -i '/Starting iRODS/,/configured and ready/d' /var/lib/irods/scripts/setup_irods.py
+#sed -i '/setup_catalog/a \ \ \ \ \ \ \ \ database_interface.server_launch_hook(irods_config)' /var/lib/irods/scripts/setup_irods.py
