@@ -1,23 +1,23 @@
-FROM centos:7 AS mysql
+FROM almalinux:8 AS mysql
 
 ARG VERSION
 
 ADD etc/yum.repos.d/ /etc/yum.repos.d/
-RUN yum install -y epel-release
+RUN dnf install -y epel-release
 
 RUN groupadd -r -g 594 irods && \
   useradd -r -c 'iRODS Administrator' -d /var/lib/irods -s /bin/bash -u 599 -g 594 irods
 
 # Use patched irods if present
 #ADD /rpm /rpm
-#RUN yum localinstall -y /rpm/irods-server-${VERSION}-1.x86_64.rpm /rpm/irods-runtime-${VERSION}-1.x86_64.rpm /rpm/irods-devel-${VERSION}-1.x86_64.rpm || true
+#RUN dnf localinstall -y /rpm/irods-server-${VERSION}-1.x86_64.rpm /rpm/irods-runtime-${VERSION}-1.x86_64.rpm /rpm/irods-devel-${VERSION}-1.x86_64.rpm || true
 
-RUN yum install -y \
+RUN dnf install -y \
   unixODBC \
   gettext \
   jq \
-  python-pip \
-  python-enum \
+  python2-pip \
+  #python2-enum \
   lnav \
   crontabs \
   mailx \
@@ -27,24 +27,25 @@ RUN yum install -y \
   python3-distro \
   python3-requests \
   python3-psutil \
-  python-devel \
+  python2-devel \
   python3-devel \
-  python36-jsonschema \
+  python3-jsonschema \
   mysql \
-  libexif-devel \
+  #libexif-devel \
   libxml2-devel \
   openssl \
   openssl-devel \
   gcc-c++ \
-  unixODBC-devel
+  unixODBC-devel \
+  procps-ng
 
 # Use more recent mysql odbc connector
-RUN yum localinstall -y https://repo.mysql.com/yum/mysql-connectors-community/el/7/x86_64/mysql-connector-odbc-8.0.25-1.el7.x86_64.rpm
+RUN dnf localinstall -y https://repo.mysql.com/yum/mysql-connectors-community/el/8/x86_64/mysql-connector-odbc-8.0.31-1.el8.x86_64.rpm
 
 # Install of curl-devel conflicts with filelists, specify repo
-RUN yum install -y --disablerepo=* --enablerepo=base,updates,extras curl-devel
+RUN dnf install -y --disablerepo=* --enablerepo=baseos,appstream,extras curl-devel
 
-RUN yum install -y \
+RUN dnf install -y \
   irods-server-${VERSION} \
   irods-runtime-${VERSION} \
   irods-icommands-${VERSION} \
@@ -53,7 +54,7 @@ RUN yum install -y \
   irods-devel-${VERSION} \
   irods-resource-plugin-s3-${VERSION}.*
 
-RUN yum install -y netcdf-devel gcc hdf5-devel
+#RUN dnf install -y netcdf-devel gcc hdf5-devel
 
 RUN pip3 install \
     supervisor \
@@ -144,7 +145,7 @@ VOLUME /var/lib/irods/log
 
 FROM mysql AS postgres
 
-RUN yum swap -y irods-database-plugin-mysql-${VERSION} irods-database-plugin-postgres-${VERSION}
+RUN dnf swap -y irods-database-plugin-mysql-${VERSION} irods-database-plugin-postgres-${VERSION}
 
 ADD variants/postgres/bin/ /usr/local/bin/
 
