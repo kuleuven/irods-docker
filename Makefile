@@ -21,7 +21,7 @@ POSTGRES_NAME?=postgres
 IRODS_NAME?=irods
 
 IRODS_ZONE=test
-IRODS_HOST=localhost
+IRODS_HOST=localhost.local
 
 DATABASE_HOST?=$(shell hostname -I | awk '{print $$1}')
 
@@ -74,33 +74,32 @@ ca-bundle:
 
 mysql: clean-mysql
 	$(DOCKER) run -d --rm -p 3306:3306 --name $(MYSQL_NAME) -e MYSQL_ROOT_PASSWORD=$(MYSQL_ROOT_PASSWORD) \
-	  --health-cmd "mysqladmin ping -h localhost" --health-interval 0 --health-retries 12 --health-start-period 10s \
 	  $(MYSQL_IMAGE) \
 	  --server-id=1 --gtid-mode=ON --enforce-gtid-consistency=ON
 	@$(MAKE) --no-print-directory wait-for-mysql
 	$(DOCKER) exec -i $(MYSQL_NAME) mysql -uroot -p$(MYSQL_ROOT_PASSWORD) < initdb.mysql.sql
 
 wait-for-mysql:
-	@echo "Waiting for mysql to start ... (max 180s)"
-	@for i in {1..30}; \
+	@echo "Waiting for mysql to start ... (max 60s)"
+	@for i in {1..60}; \
 		do \
 		echo -n "."; \
-		./healthcheck.sh $(MYSQL_NAME) 1>/dev/null && break; \
-		sleep 1; \
-		done
-	@sleep 1; echo -n ".";
-	@for i in {1..30}; \
-		do \
-		echo -n "."; \
-		./healthcheck.sh $(MYSQL_NAME) 1>/dev/null && break; \
+		docker exec -i $(MYSQL_NAME) mysql -uroot -prootpassword -e 'use mysql' &>/dev/null && break; \
 		sleep 1; \
 		done; \
-		echo
+	 sleep 1; \
+	 for i in $$(seq $$i 60); \
+		do \
+		echo -n "."; \
+		docker exec -i $(MYSQL_NAME) mysql -uroot -prootpassword -e 'use mysql' &>/dev/null && break; \
+		sleep 1; \
+		done; \
+		echo " waited $$i seconds"
+	@docker exec -i $(MYSQL_NAME) mysql -uroot -prootpassword -e 'use mysql' &>/dev/null
 	@echo "Mysql is up and running."
 
 postgres: clean-postgres
 	$(DOCKER) run -d --rm -p 5432:5432 --name $(POSTGRES_NAME) -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) -e PGPASSWORD=$(POSTGRES_PASSWORD) \
-	  --health-cmd "pg_isready -U postgres" --health-interval 0 --health-retries 12 --health-start-period 10s \
 	  $(POSTGRES_IMAGE)
 	@$(MAKE) --no-print-directory wait-for-postgres
 	$(DOCKER) exec -i $(POSTGRES_NAME) psql -U postgres < initdb.postgres.sql
@@ -110,11 +109,11 @@ wait-for-postgres:
 	@for i in {1..180}; \
 		do \
 		echo -n "."; \
-		./healthcheck.sh $(POSTGRES_NAME) 1>/dev/null && break; \
+		docker exec -i $(POSTGRES_NAME) pg_isready -U postgres &>/dev/null && break; \
 		sleep 1; \
 		done; \
 		echo " waited $$i seconds"
-	@./healthcheck.sh $(POSTGRES_NAME) 1>/dev/null
+	@docker exec -i $(POSTGRES_NAME) pg_isready -U postgres &>/dev/null
 	@echo "Postgres is up and running."
 
 build-irods:
@@ -140,7 +139,6 @@ irods: clean-irods ssl build-irods
 	  -e SSL_CA_BUNDLE=/ssl/ca-bundle.pem \
 	  -e AMQP=admin:hunter2@$(RABBITMQ_HOST):5672 \
 	  -e FEDERATION='$(FEDERATION)' \
-	  --health-cmd "healthcheck" --health-interval 0 --health-retries 12 \
 	  $(IRODS_IMAGE)
 ifeq ($(LOG),1)
 	$(DOCKER) logs -f $(IRODS_NAME)
@@ -154,9 +152,9 @@ wait-for-irods:
 	@for i in {1..180}; \
 		do \
 		echo -n "."; \
-		./healthcheck.sh $(IRODS_NAME) 1>/dev/null && break; \
+		docker exec -i $(IRODS_NAME) healthcheck &>/dev/null && break; \
 		sleep 1; \
 		done; \
 		echo " waited $$i seconds"
-	@./healthcheck.sh $(IRODS_NAME) 1>/dev/null
+	@docker exec -i $(IRODS_NAME) healthcheck &>/dev/null
 	@echo "Irods is up and running."
